@@ -1,11 +1,38 @@
 package com.thesis.android.metrics.contextanalyzer;
 
+import android.content.ComponentName;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 public class ContextAnalyzerActivity extends AppCompatActivity {
+
+    ContextAnalyzerService contextAnalyzerService;
+    boolean serviceBound = false;
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service)
+        {
+            ContextAnalyzerService.MyBinder myBinder
+                    = (ContextAnalyzerService.MyBinder) service;
+            contextAnalyzerService = myBinder.getService();
+            serviceBound = true;
+
+            /*
+                To do - Start a thread and work on it
+            */
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name)
+        {
+            serviceBound = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,17 +48,13 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    public void onDestroy()
+    {
+        super.onDestroy();
+        if(serviceBound)
+        {
+            unbindService(serviceConnection);
+            serviceBound = false;
         }
-
-        return super.onOptionsItemSelected(item);
     }
 }
