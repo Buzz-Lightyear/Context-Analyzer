@@ -1,5 +1,15 @@
 <resources>
     <string name="app_name">ContextAnalyzer</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="cache_hits"><b>Cache Hits:</b></string>
+    <string name="overallMetrics"><b>OVERALL METRICS</b></string>
+    <string name="cacheMisses"><b>Cache Misses:</b></string>
+    <string name="cacheHitRatio"><b>Cache Hit Ratio:</b></string>
+    <string name="suggestedApplicationsMetrics"><b>SUGGESTED APPLICATIONS METRICS</b></string>
+    <string name="suggestedHitsNotInCache"><b>Cache Hits </b>
+        (From Apps <b>Not In</b> Cache but In Suggested List):</string>
+    <string name="suggestedHitsAlsoInCache"><b>Cache Hits</b>
+        (From Apps in Cache <b>AND</b> Suggested List):</string>
+    <string name="recentHitsOrMisses"><b>Recent Hits/Misses:</b></string>
+    <string name="listOfProcessesInCache"><b>List Of Processes in Cache</b></string>
+    <string name="listOfSuggestedApplications"><b>List Of Suggested Applications:</b></string>
 </resources>
