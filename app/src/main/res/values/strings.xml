@@ -12,8 +12,7 @@
     <string name="recentHitsOrMisses"><b>Recent Hits/Misses:</b></string>
     <string name="listOfProcessesInCache"><b>List Of Processes in Cache</b></string>
     <string name="listOfSuggestedApplications"><b>List Of Suggested Applications:</b></string>
-    <string name="loading">Loading...</string>
-    <string name="myApp">com.thesis.android.metrics.cachemetricscollector</string>
+    <string name="myApp">com.thesis.android.metrics.contextanalyzer</string>
     <string name="homeScreen">com.google.android.googlequicksearchbox</string>
     <string name="acoreProcess">android.process.acore</string>
     <string name="boxSearchApp">com.google.android.googlequicksearchboxsearch</string>

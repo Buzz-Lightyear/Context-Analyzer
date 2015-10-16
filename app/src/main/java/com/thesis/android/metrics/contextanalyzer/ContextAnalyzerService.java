@@ -41,16 +41,16 @@ public class ContextAnalyzerService extends Service
     private int suggestedCacheMisses;
     private double suggestedCacheHitRatio = 1;
 
-    private String recentHitsAndMisses = getString(R.string.loading);
+    private String recentHitsAndMisses = "Loading...";
     private Queue<String> recentHitsAndMissesQueue = new LinkedList<>();
 
-    private String listOfProcessesInCache = getString(R.string.loading);
+    private String listOfProcessesInCache = "Loading...";
     private List<String> listOfProcessesInCacheList = new ArrayList<>();
 
-    private String listOfSuggestedApplications = getString(R.string.loading);
+    private String listOfSuggestedApplications = "Loading...";
     private List<String> listOfSuggestedApplicationsList = new ArrayList<>();
 
-    private String foregroundApp = getString(R.string.loading);
+    private String foregroundApp = "Loading...";
 
     public void getCurrentMetricsFromFile()
     {
