@@ -1,6 +1,8 @@
 package com.thesis.android.metrics.contextanalyzer;
 
 import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
@@ -113,6 +115,11 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_context_analyzer);
+
+        Intent intent = new Intent(this, ContextAnalyzerService.class);
+        startService(intent);
+
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -128,6 +135,12 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
         super.onDestroy();
         if(serviceBound)
         {
+            /*
+                If the activity is manually closed,
+                update internal storage with cache metrics
+            */
+            contextAnalyzerService.updateMetricsFile();
+
             unbindService(serviceConnection);
             serviceBound = false;
         }
