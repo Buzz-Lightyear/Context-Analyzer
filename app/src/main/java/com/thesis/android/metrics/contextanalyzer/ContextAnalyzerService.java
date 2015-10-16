@@ -1,6 +1,7 @@
 package com.thesis.android.metrics.contextanalyzer;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
@@ -8,9 +9,15 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,6 +62,53 @@ public class ContextAnalyzerService extends Service
                 Suggested and Cache CH
                 Suggested CM
         */
+
+        {
+            final String filename = getString(R.string.metricsDataFileName);
+
+            FileInputStream inputStream;
+            InputStreamReader inputStreamReader;
+            BufferedReader bufferedReader = null;
+
+            try
+            {
+                inputStream       = openFileInput(filename);
+                inputStreamReader = new InputStreamReader(inputStream);
+                bufferedReader    = new BufferedReader(inputStreamReader);
+
+                overallCacheHits   = Integer.valueOf(bufferedReader.readLine());
+                overallCacheMisses = Integer.valueOf(bufferedReader.readLine());
+                suggestedExclusiveCacheHits = Integer.valueOf(bufferedReader.readLine());
+                cacheAndSuggestedCacheHits = Integer.valueOf(bufferedReader.readLine());
+                suggestedCacheMisses = Integer.valueOf(bufferedReader.readLine());
+            }
+            catch (FileNotFoundException e)
+            {
+                Log.d("Exception", "File hasn't been created yet, method called for first time");
+                return;
+            }
+            catch (IOException e)
+            {
+                Log.d("Exception", "IO Exception while reading from metrics file");
+                e.printStackTrace();
+            }
+            finally
+            {
+                try
+                {   if(bufferedReader != null)
+                        closeFileInputHandlers(bufferedReader);
+                }
+                catch (IOException e)
+                {
+                    Log.d("Exception", "Exception occurred while closing read file handler");
+                }
+            }
+        }
+    }
+
+    private void closeFileInputHandlers(BufferedReader bufferedReader) throws IOException
+    {
+        bufferedReader.close();
     }
 
     public void updateMetricsFile()
@@ -67,6 +121,61 @@ public class ContextAnalyzerService extends Service
             Suggested and Cache CH
             Suggested CM
         */
+
+        {
+            final String filename               = getString(R.string.metricsDataFileName);
+            final String overallHits            = String.valueOf(overallCacheHits);
+            final String overallMisses          = String.valueOf(overallCacheMisses);
+            final String suggestedExclusiveHits = String.valueOf(suggestedExclusiveCacheHits);
+            final String cacheAndSuggestedHits  = String.valueOf(cacheAndSuggestedCacheHits);
+            final String suggestedMisses        = String.valueOf(suggestedCacheMisses);
+
+            FileOutputStream outputStream;
+            OutputStreamWriter outputStreamWriter;
+            BufferedWriter bufferedWriter = null;
+
+            try
+            {
+                outputStream         = openFileOutput(filename, Context.MODE_PRIVATE);
+                outputStreamWriter   = new OutputStreamWriter(outputStream);
+                bufferedWriter       = new BufferedWriter(outputStreamWriter);
+
+                writeDataToFile(overallHits, overallMisses, suggestedExclusiveHits, cacheAndSuggestedHits, suggestedMisses, bufferedWriter);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                Log.d("Exception", "Exception occurred while writing to file");
+            }
+            finally
+            {
+                try {
+                    if(bufferedWriter != null)
+                        closeFileOutputHandlers(bufferedWriter);
+                } catch (IOException e) {
+                    Log.d("Exception", "Exception occurred while closing file handler");
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void closeFileOutputHandlers(BufferedWriter bufferedWriter) throws IOException
+    {
+        bufferedWriter.flush();
+        bufferedWriter.close();
+    }
+
+    private void writeDataToFile(String overallHits, String overallMisses, String suggestedExclusiveHits, String cacheAndSuggestedHits, String suggestedMisses, BufferedWriter bufferedWriter) throws IOException {
+        bufferedWriter.write(overallHits);
+        bufferedWriter.newLine();
+        bufferedWriter.write(overallMisses);
+        bufferedWriter.newLine();
+        bufferedWriter.write(suggestedExclusiveHits);
+        bufferedWriter.newLine();
+        bufferedWriter.write(cacheAndSuggestedHits);
+        bufferedWriter.newLine();
+        bufferedWriter.write(suggestedMisses);
     }
 
     public void updateListOfSuggestedApplications()

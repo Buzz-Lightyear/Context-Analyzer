@@ -28,4 +28,5 @@
     <string name="EMPTY" />
     <string name="oomScoreAdjFilePath">/proc/%d/oom_score_adj</string>
     <string name="oomScoreFilePath">/proc/%d/oom_score</string>
+    <string name="metricsDataFileName">metricsData</string>
 </resources>
