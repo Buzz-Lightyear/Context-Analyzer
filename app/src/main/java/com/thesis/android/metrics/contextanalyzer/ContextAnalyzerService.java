@@ -5,8 +5,20 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * Created by Srinivas on 10/14/2015.
@@ -16,13 +28,22 @@ public class ContextAnalyzerService extends Service
     private int overallCacheHits;
     private int overallCacheMisses;
     private double overallCacheHitRatio = -1;
+
     private int suggestedExclusiveCacheHits;
     private int cacheAndSuggestedCacheHits;
     private int suggestedCacheMisses;
     private double suggestedCacheHitRatio = 1;
-    private String recentHitsAndMisses;
-    private String listOfProcessesInCache;
-    private String listOfSuggestedApplications;
+
+    private String recentHitsAndMisses = getString(R.string.loading);
+    private Queue<String> recentHitsAndMissesQueue = new LinkedList<>();
+
+    private String listOfProcessesInCache = getString(R.string.loading);
+    private List<String> listOfProcessesInCacheList = new ArrayList<>();
+
+    private String listOfSuggestedApplications = getString(R.string.loading);
+    private List<String> listOfSuggestedApplicationsList = new ArrayList<>();
+
+    private String foregroundApp = getString(R.string.loading);
 
     public void getCurrentMetricsFromFile()
     {
@@ -48,12 +69,22 @@ public class ContextAnalyzerService extends Service
         */
     }
 
-    public void updateSuggestedApplications()
+    public void updateListOfSuggestedApplications()
     {
         /*
             Update list of suggested applications.
             This function is called once at application start and every subsequent hour.
         */
+
+        /*
+            For the moment, suggest a sample set of applications.
+            Actual application will hit the Calendar API to fetch this information.
+        */
+        listOfSuggestedApplicationsList = new ArrayList<>(Arrays.asList("com.espn.fantasy.lm.football",
+                                                                        "com.facebook.katana",
+                                                                        "com.facebook.orca"));
+
+        listOfSuggestedApplications = customStringFormatForList(listOfSuggestedApplicationsList);
     }
 
     public void updateStatistics()
@@ -62,6 +93,270 @@ public class ContextAnalyzerService extends Service
             This function is called every second.
             It updates all cache hit/miss statistics.
         */
+
+        Set<String> appsThatDontAddToCacheMetrics = new HashSet<>();
+        addIrrelevantAppsToSet(appsThatDontAddToCacheMetrics);
+
+        String newForegroundApp = computeForegroundApp();
+
+        /*
+            User is using the recent apps screen to pick a foreground application.
+            In this case, newForegroundApp is null
+        */
+        if(newForegroundApp == null)
+            return;
+
+        final boolean foregroundAppChanged = !newForegroundApp.equals(foregroundApp);
+
+        /*
+            User has switched to a new application, update Cache statistics!
+
+            The second check in the if statement ensures that switching to
+            the home screen (internally a process or switching to the Cache
+            Metrics app doesn't affect the statistics.)
+        */
+
+        if(foregroundAppChanged && !appsThatDontAddToCacheMetrics.contains(newForegroundApp))
+        {
+            removeLastIfQueueFull();
+
+            boolean appPresentInCache           = listOfProcessesInCacheList.contains(newForegroundApp);
+            boolean appPresentInSuggestedList   = listOfSuggestedApplicationsList.contains(newForegroundApp);
+
+            /*
+                Increment overall cache hit, cache and suggested cache hit
+            */
+            if(appPresentInCache && appPresentInSuggestedList)
+            {
+                Log.d("Cache Hit", "App present in both suggested list and cache");
+                recentHitsAndMissesQueue.offer("HIT - Present in Both Lists\nOLD - "
+                        + foregroundApp
+                        + "\nNEW - "
+                        + newForegroundApp
+                        + "\n");
+                overallCacheHits++;
+                cacheAndSuggestedCacheHits++;
+            }
+
+            /*
+                Increment overall cache hit, suggested cache miss
+            */
+            else if(appPresentInCache && !appPresentInSuggestedList)
+            {
+                Log.d("Cache Hit", "App present in cache but not in suggested list");
+                recentHitsAndMissesQueue.offer("HIT - Present only in Cache\nOLD - "
+                        + foregroundApp
+                        + "\nNEW - "
+                        + newForegroundApp
+                        + "\n");
+                overallCacheHits++;
+                suggestedCacheMisses++;
+            }
+
+            /*
+                Increment overall cache hits, suggested exclusive cache hits
+            */
+            else if(!appPresentInCache && appPresentInSuggestedList)
+            {
+                Log.d("Cache Hit", "App present in suggested app list but not in cache");
+                recentHitsAndMissesQueue.offer("HIT - Present in Suggested Apps\nOLD - "
+                        + foregroundApp
+                        + "\nNEW - "
+                        + newForegroundApp
+                        + "\n");
+                overallCacheHits++;
+                suggestedExclusiveCacheHits++;
+            }
+
+            /*
+                Increment overall cache misses, suggested cache misses
+            */
+            else
+            {
+                Log.d("Cache Miss", "App present in neither of the lists");
+                recentHitsAndMissesQueue.offer("MISS - Present in Neither List\nOLD - "
+                        + foregroundApp
+                        + "\nNEW - "
+                        + newForegroundApp
+                        + "\n");
+                overallCacheMisses++;
+                suggestedCacheMisses++;
+            }
+
+        }
+
+        updateOverallCacheHitRatio();
+        updateSuggestedCacheHitRatio();
+
+        foregroundApp = newForegroundApp;
+
+        recentHitsAndMisses = customStringFormatForQueue(recentHitsAndMissesQueue);
+
+        listOfProcessesInCacheList = computeRunningApplications();
+        listOfProcessesInCache = customStringFormatForList(listOfProcessesInCacheList);
+
+        updateListOfSuggestedApplications();
+    }
+
+    private void updateOverallCacheHitRatio()
+    {
+        final int totalHitsAndMisses = overallCacheHits + overallCacheMisses;
+        overallCacheHitRatio = totalHitsAndMisses < 1 ? 0.0 : overallCacheHits * 100 / totalHitsAndMisses;
+    }
+
+    private void updateSuggestedCacheHitRatio()
+    {
+        final int totalHits = suggestedExclusiveCacheHits + cacheAndSuggestedCacheHits;
+        final int totalHitsAndMisses = totalHits + suggestedCacheMisses;
+        suggestedCacheHitRatio = totalHitsAndMisses < 1
+                                    ? 0.0
+                                    : totalHits * 100 / totalHitsAndMisses;
+    }
+
+    private void removeLastIfQueueFull() {
+        if(recentHitsAndMissesQueue.size() > 9)
+            recentHitsAndMissesQueue.poll();
+    }
+
+    /** first app user */
+    public static final int AID_APP = 10000;
+
+    /** offset for uid ranges for each user */
+    public static final int AID_USER = 100000;
+
+    private String computeForegroundApp()
+    {
+        File[] files = new File(getString(R.string.topLevelFilePath)).listFiles();
+        int lowestOomScore = Integer.MAX_VALUE;
+        String foregroundProcess = null;
+
+        for (File file : files) {
+            if (!file.isDirectory()) {
+                continue;
+            }
+
+            int pid;
+            try {
+                pid = Integer.parseInt(file.getName());
+            } catch (NumberFormatException e) {
+                continue;
+            }
+
+            try {
+                String cgroup = read(String.format(getString(R.string.cgroupFilePath), pid));
+
+                String[] lines = cgroup.split("\n");
+
+                if (lines.length != 2) {
+                    continue;
+                }
+
+                String cpuSubsystem = lines[0];
+                String cpuaccctSubsystem = lines[1];
+
+                if (!cpuaccctSubsystem.endsWith(Integer.toString(pid))) {
+                    // not an application process
+                    continue;
+                }
+
+                if (cpuSubsystem.endsWith(getString(R.string.bg_non_interactive))) {
+                    // background policy
+                    continue;
+                }
+
+                String cmdline = read(String.format(getString(R.string.cmdlineFilePath), pid));
+
+                if (cmdline.contains(getString(R.string.systemUIProcessName))) {
+                    continue;
+                }
+
+                int uid = Integer.parseInt(
+                        cpuaccctSubsystem.split(getString(R.string.COLON))[2].split(getString(R.string.FORWARD_SLASH))[1]
+                                .replace(getString(R.string.uid_), getString(R.string.EMPTY)));
+                if (uid >= 1000 && uid <= 1038) {
+                    // system process
+                    continue;
+                }
+
+                int appId = uid - AID_APP;
+                int userId = 0;
+                // loop until we get the correct user id.
+                // 100000 is the offset for each user.
+                while (appId > AID_USER) {
+                    appId -= AID_USER;
+                    userId++;
+                }
+
+                if (appId < 0) {
+                    continue;
+                }
+
+                // u{user_id}_a{app_id} is used on API 17+ for multiple user account support.
+                // String uidName = String.format("u%d_a%d", userId, appId);
+
+                File oomScoreAdj = new File(String.format(getString(R.string.oomScoreAdjFilePath), pid));
+                if (oomScoreAdj.canRead()) {
+                    int oomAdj = Integer.parseInt(read(oomScoreAdj.getAbsolutePath()));
+                    if (oomAdj != 0) {
+                        continue;
+                    }
+                }
+
+                int oomscore = Integer.parseInt(read(String.format(getString(R.string.oomScoreFilePath), pid)));
+                if (oomscore < lowestOomScore) {
+                    lowestOomScore = oomscore;
+                    foregroundProcess = cmdline;
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        String result = null;
+
+        if(foregroundProcess != null)
+            result = foregroundProcess.replaceAll("[^a-z.]+", "");
+
+        return result;
+    }
+
+    private static String read(String path) throws IOException
+    {
+        StringBuilder output = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new FileReader(path));
+        output.append(reader.readLine());
+        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+            output.append('\n').append(line);
+        }
+        reader.close();
+        return output.toString();
+    }
+
+    private void addIrrelevantAppsToSet(Set<String> appsThatDontAddToCacheMetrics)
+    {
+        appsThatDontAddToCacheMetrics.add(getString(R.string.myApp));
+        appsThatDontAddToCacheMetrics.add(getString(R.string.homeScreen));
+        appsThatDontAddToCacheMetrics.add(getString(R.string.acoreProcess));
+        appsThatDontAddToCacheMetrics.add(getString(R.string.boxSearchApp));
+    }
+
+    private String customStringFormatForQueue(Queue<String> queue)
+    {
+        StringBuilder result = new StringBuilder();
+
+        for(String hitOrMiss : queue)
+            result.append(hitOrMiss).append("\n");
+
+        return result.toString();
+    }
+
+    private String customStringFormatForList(List<String> list)
+    {
+        StringBuilder builder = new StringBuilder("");
+        for(String item : list)
+            builder.append(item).append("\n");
+        return builder.toString();
     }
 
     public String getOverallCacheHits()
@@ -102,6 +397,32 @@ public class ContextAnalyzerService extends Service
     public String getRecentHitsAndMisses()
     {
         return recentHitsAndMisses;
+    }
+
+    private List<String> computeRunningApplications()
+    {
+        List<String> runningApplicationsNames = new ArrayList<>();
+
+        List<ProcessManager.Process> runningApplications = ProcessManager.getRunningApplications();
+        Collections.sort(runningApplications);
+
+        for(ProcessManager.Process process : runningApplications)
+        {
+            String processName = process.name;
+            runningApplicationsNames.add(removeColonsUnderscoresAndDigits(processName));
+        }
+
+        return runningApplicationsNames;
+    }
+
+    private String removeColonsUnderscoresAndDigits(String inputString)
+    {
+        inputString = inputString.replace(":", "");
+        inputString = inputString.replace("_", "");
+        inputString = inputString.replace("0", "");
+        inputString = inputString.replace("1", "");
+
+        return inputString;
     }
 
     public String getListOfProcessesInCache()

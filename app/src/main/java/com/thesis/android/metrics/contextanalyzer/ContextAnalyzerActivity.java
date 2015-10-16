@@ -59,7 +59,7 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
                             if(iteration % 3600 == 0)
                             {
                                 Log.d("Hourly Update", "Update list of suggested applications by parsing the user's Calendar");
-                                contextAnalyzerService.updateSuggestedApplications();
+                                contextAnalyzerService.updateListOfSuggestedApplications();
                             }
 
                             iteration++;

@@ -49,7 +49,7 @@ public class ProcessManager
         This encompasses all the applications that the Settings app shows in both
         'Running' and 'Background Cached Processes' screens
     */
-    List<Process> getRunningApplications() {
+    static List<Process> getRunningApplications() {
         List<Process> processes = new ArrayList<>();
         List<String> stdout = Shell.SH.run("toolbox ps -p -P -x -c");
         int myPid = android.os.Process.myPid();
