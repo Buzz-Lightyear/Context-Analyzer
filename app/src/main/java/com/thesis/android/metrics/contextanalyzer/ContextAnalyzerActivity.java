@@ -4,12 +4,21 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.TextView;
+
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ContextAnalyzerActivity extends AppCompatActivity {
 
@@ -24,6 +33,8 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
                     = (ContextAnalyzerService.MyBinder) service;
             contextAnalyzerService = myBinder.getService();
             serviceBound = true;
+
+            populateNumberOfInstalledApplications();
 
             Thread t = new Thread() {
 
@@ -90,10 +101,6 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
                                     populateTextView(contextAnalyzerService.getListOfSuggestedApplications(), R.id.listOfSuggestedApplications);
                                 }
 
-                                private void populateTextView(String content, int viewId) {
-                                    TextView textView = (TextView) findViewById(viewId);
-                                    textView.setText(content);
-                                }
                             });
                         }
                     } catch (InterruptedException e) {
@@ -104,6 +111,12 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
             t.start();
         }
 
+        private void populateNumberOfInstalledApplications() {
+            final int numberOfInstalledApplications =
+                    contextAnalyzerService.getAllInstalledApplications().size();
+            populateTextView(String.valueOf(numberOfInstalledApplications) + "\n", R.id.numberOfInstalledApplications);
+        }
+
         @Override
         public void onServiceDisconnected(ComponentName name)
         {
@@ -112,14 +125,41 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
     };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_context_analyzer);
+
+        populateSystemAndDeviceInformation();
 
         Intent intent = new Intent(this, ContextAnalyzerService.class);
         startService(intent);
 
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private void populateSystemAndDeviceInformation()
+    {
+        StringBuilder systemAndDeviceInformation = new StringBuilder();
+
+        appendSystemInformation(systemAndDeviceInformation);
+        appendDeviceInformation(systemAndDeviceInformation);
+
+        populateTextView(systemAndDeviceInformation.toString(), R.id.systemAndDeviceInformation);
+    }
+
+    private void appendDeviceInformation(StringBuilder systemAndDeviceInformation) {
+        systemAndDeviceInformation.append("\nModel: ").append(android.os.Build.MODEL)
+                .append(" (").append(android.os.Build.PRODUCT).append(")\n");
+    }
+
+    private void appendSystemInformation(StringBuilder systemAndDeviceInformation) {
+        systemAndDeviceInformation.append("API Level: ").append(Build.VERSION.SDK_INT);
+    }
+
+    private void populateTextView(String content, int viewId) {
+        TextView textView = (TextView) findViewById(viewId);
+        textView.setText(content);
     }
 
     @Override

@@ -1,10 +1,16 @@
 package com.thesis.android.metrics.contextanalyzer;
 
 import android.app.Service;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.provider.CalendarContract;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -186,12 +192,17 @@ public class ContextAnalyzerService extends Service
         */
 
         /*
-            For the moment, suggest a sample set of applications.
-            Actual application will hit the Calendar API to fetch this information.
+            Hit the Calendar API here and update list of suggested applications
         */
-        listOfSuggestedApplicationsList = new ArrayList<>(Arrays.asList("com.espn.fantasy.lm.football",
+
+        /*
+            For the moment, throw in random processes into this list
+        */
+
+        listOfSuggestedApplicationsList = new ArrayList<>(Arrays.asList("com.facebook.orca",
                                                                         "com.facebook.katana",
-                                                                        "com.facebook.orca"));
+                                                                        "com.spotify.music",
+                                                                        "com.textra"));
 
         listOfSuggestedApplications = customStringFormatForList(listOfSuggestedApplicationsList);
     }
@@ -303,8 +314,6 @@ public class ContextAnalyzerService extends Service
 
         listOfProcessesInCacheList = computeRunningApplications();
         listOfProcessesInCache = customStringFormatForList(listOfProcessesInCacheList);
-
-        updateListOfSuggestedApplications();
     }
 
     private void updateOverallCacheHitRatio()
@@ -542,6 +551,19 @@ public class ContextAnalyzerService extends Service
     public String getListOfSuggestedApplications()
     {
         return listOfSuggestedApplications;
+    }
+
+    List<String> getAllInstalledApplications()
+    {
+        final PackageManager packageManager = getPackageManager();
+
+        List<ApplicationInfo> packages = packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
+
+        List<String> packageNames = new ArrayList<>();
+        for(ApplicationInfo applicationPackage : packages)
+            packageNames.add(applicationPackage.packageName);
+
+        return packageNames;
     }
 
     public class MyBinder extends Binder {

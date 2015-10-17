@@ -9,9 +9,9 @@
         (From Apps <b>Not In</b> Cache but In Suggested List):</string>
     <string name="suggestedHitsAlsoInCache"><b>Cache Hits</b>
         (From Apps in Cache <b>AND</b> Suggested List):</string>
-    <string name="recentHitsOrMisses"><b>Recent Hits/Misses:</b></string>
-    <string name="listOfProcessesInCache"><b>List Of Processes in Cache</b></string>
-    <string name="listOfSuggestedApplications"><b>List Of Suggested Applications:</b></string>
+    <string name="recentHitsOrMisses"><b>RECENT HITS/MISSES:</b></string>
+    <string name="listOfProcessesInCache"><b>LIST OF PROCESSES IN CACHE</b></string>
+    <string name="listOfSuggestedApplications"><b>LIST OF SUGGESTED APPLICATIONS:</b></string>
     <string name="myApp">com.thesis.android.metrics.contextanalyzer</string>
     <string name="homeScreen">com.google.android.googlequicksearchbox</string>
     <string name="acoreProcess">android.process.acore</string>
@@ -28,4 +28,6 @@
     <string name="oomScoreAdjFilePath">/proc/%d/oom_score_adj</string>
     <string name="oomScoreFilePath">/proc/%d/oom_score</string>
     <string name="metricsDataFileName">metricsData</string>
+    <string name="systemAndDeviceInformation"><b>SYSTEM AND DEVICE INFORMATION:</b></string>
+    <string name="numberOfInstalledApplications"><b>NUMBER OF INSTALLED APPLICATIONS:</b></string>
 </resources>
