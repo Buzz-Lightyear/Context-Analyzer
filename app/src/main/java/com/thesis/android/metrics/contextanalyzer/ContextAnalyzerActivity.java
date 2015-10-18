@@ -71,9 +71,9 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
                             /*
                                 Every two hours, get the latest list of suggested applications by parsing the Calendar
                             */
-                            if(iteration % 7200 == 0)
+                            if(iteration % 14400 == 0)
                             {
-                                Log.d("Hourly Update", "Update list of suggested applications by parsing the user's Calendar");
+                                Log.d("4 Hour Update", "Update list of suggested applications by parsing the user's Calendar");
                                 contextAnalyzerService.updateListOfSuggestedApplications();
                             }
 

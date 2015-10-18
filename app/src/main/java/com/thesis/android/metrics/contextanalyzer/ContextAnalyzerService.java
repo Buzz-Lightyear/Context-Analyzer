@@ -188,7 +188,7 @@ public class ContextAnalyzerService extends Service
     {
         /*
             Update list of suggested applications.
-            This function is called once at application start and every subsequent 2 hours.
+            This function is called once at application start and every subsequent 4 hours.
         */
 
         setOfSuggestedApplications = new HashSet<String>();
@@ -219,7 +219,8 @@ public class ContextAnalyzerService extends Service
         /*
             Hit the Calendar API and get the events for the next two hours
         */
-        return new ArrayList<>(Arrays.asList("Call mom", "Ping dad", "Sleep Now"));
+        List<String> events = CalendarReader.readCalendarEvent(getApplicationContext());
+        return events;
     }
 
     void populateDefaultSuggestedApplications()
@@ -384,6 +385,16 @@ public class ContextAnalyzerService extends Service
                                                             googleDocs,
                                                             googleSheets,
                                                             googleSlides));
+
+        keywordToApplicationsMap.put("birthday", Arrays.asList(goSMS,
+                                                                hangouts,
+                                                                gmail,
+                                                                email,
+                                                                calendar,
+                                                                googleDialer,
+                                                                skype,
+                                                                imo,
+                                                                whatsapp));
     }
 
     public void updateStatistics()
