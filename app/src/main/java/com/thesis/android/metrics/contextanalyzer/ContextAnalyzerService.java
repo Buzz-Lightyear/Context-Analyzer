@@ -1,16 +1,12 @@
 package com.thesis.android.metrics.contextanalyzer;
 
 import android.app.Service;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
-import android.provider.CalendarContract;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -26,7 +22,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -53,10 +48,10 @@ public class ContextAnalyzerService extends Service
     private Queue<String> recentHitsAndMissesQueue = new LinkedList<>();
 
     private String listOfProcessesInCache = "Loading...";
-    private List<String> listOfProcessesInCacheList = new ArrayList<>();
+    private Set<String> setOfProcessesInCacheList = new HashSet<>();
 
     private String listOfSuggestedApplications = "Loading...";
-    private List<String> listOfSuggestedApplicationsList = new ArrayList<>();
+    private Set<String> setOfSuggestedApplications = new HashSet<>();
 
     private String foregroundApp = "Loading...";
 
@@ -196,7 +191,7 @@ public class ContextAnalyzerService extends Service
             This function is called once at application start and every subsequent 2 hours.
         */
 
-        listOfSuggestedApplicationsList = new ArrayList<>();
+        setOfSuggestedApplications = new HashSet<String>();
 
         /*
             Hit the Calendar API here and update list of suggested applications
@@ -211,12 +206,12 @@ public class ContextAnalyzerService extends Service
             {
                 keyword = keyword.toLowerCase();
                 if(keywordToApplicationsMap.containsKey(keyword))
-                    listOfSuggestedApplicationsList.addAll(keywordToApplicationsMap.get(keyword));
+                    setOfSuggestedApplications.addAll(keywordToApplicationsMap.get(keyword));
             }
         }
 
-        listOfSuggestedApplicationsList.addAll(defaultSuggestedApplications);
-        listOfSuggestedApplications = customStringFormatForList(listOfSuggestedApplicationsList);
+        setOfSuggestedApplications.addAll(defaultSuggestedApplications);
+        listOfSuggestedApplications = customStringFormatForSet(setOfSuggestedApplications);
     }
 
     private List<String> getEventsFromCalendar()
@@ -224,7 +219,7 @@ public class ContextAnalyzerService extends Service
         /*
             Hit the Calendar API and get the events for the next two hours
         */
-        return new ArrayList<>();
+        return new ArrayList<>(Arrays.asList("Call mom", "Ping dad", "Sleep Now"));
     }
 
     void populateDefaultSuggestedApplications()
@@ -243,93 +238,152 @@ public class ContextAnalyzerService extends Service
 
     void populateKeywordToApplicationsMap()
     {
-        keywordToApplicationsMap.put("call", Arrays.asList("com.google.android.dialer",
-                                                            "com.google.android.talk",
-                                                            "com.skype.raider",
-                                                            "com.imo.android.imoim",
-                                                            "com.google.android.contacts",
-                                                            "com.facebook.orca"));
+        /*
+            Keep updating this list as and when you think of keywords
+        */
 
-        keywordToApplicationsMap.put("contact", Arrays.asList("com.google.android.dialer",
-                                                                "com.google.android.talk",
-                                                                "com.skype.raider",
-                                                                "com.imo.android.imoim",
-                                                                "com.google.android.contacts",
-                                                                "com.google.android.email",
-                                                                "com.google.android.gm",
-                                                                "com.facebook.orca"));
+        final String googleDialer = getString(R.string.googleDialer);
+        final String hangouts = getString(R.string.hangouts);
+        final String skype = getString(R.string.skype);
+        final String imo = getString(R.string.imo);
+        final String contacts = getString(R.string.contacts);
+        final String whatsapp = getString(R.string.whatsapp);
 
-        keywordToApplicationsMap.put("chat", Arrays.asList("com.google.android.dialer",
-                                                            "com.google.android.talk",
-                                                            "com.skype.raider",
-                                                            "com.imo.android.imoim",
-                                                            "com.google.android.contacts",
-                                                            "com.google.android.email",
-                                                            "com.google.android.gm",
-                                                            "com.facebook.orca"));
+        keywordToApplicationsMap.put("call", Arrays.asList(googleDialer,
+                                                            hangouts,
+                                                            skype,
+                                                            imo,
+                                                            contacts,
+                                                            whatsapp));
 
-        keywordToApplicationsMap.put("ping", Arrays.asList("com.google.android.dialer",
-                                                            "com.google.android.talk",
-                                                            "com.skype.raider",
-                                                            "com.imo.android.imoim",
-                                                            "com.google.android.contacts",
-                                                            "com.google.android.email",
-                                                            "com.google.android.gm",
-                                                            "com.facebook.orca"));
+        final String email = getString(R.string.email);
+        final String gmail = getString(R.string.gmail);
 
-        keywordToApplicationsMap.put("dial", Arrays.asList("com.google.android.dialer",
-                                                            "com.google.android.talk",
-                                                            "com.skype.raider",
-                                                            "com.imo.android.imoim",
-                                                            "com.google.android.contacts",
-                                                            "com.facebook.orca"));
+        keywordToApplicationsMap.put("contact", Arrays.asList(googleDialer,
+                                                                hangouts,
+                                                                skype,
+                                                                imo,
+                                                                contacts,
+                                                                email,
+                                                                whatsapp,
+                                                                gmail));
 
-        keywordToApplicationsMap.put("meeting", Arrays.asList("com.google.android.dialer",
-                                                                "com.google.android.talk",
-                                                                "com.android.providers.calendar",
-                                                                "com.skype.raider",
-                                                                "com.imo.android.imoim",
-                                                                "com.google.android.contacts",
-                                                                "com.google.android.apps.docs.editors.docs",
-                                                                "com.google.android.apps.docs.editors.sheets",
-                                                                "com.google.android.apps.docs.editors.slides",
-                                                                "com.google.android.email",
-                                                                "com.google.android.gm",
-                                                                "com.google.android.apps.docs",
-                                                                "com.google.android.keep"));
+        keywordToApplicationsMap.put("chat", Arrays.asList(googleDialer,
+                                                            hangouts,
+                                                            skype,
+                                                            imo,
+                                                            contacts,
+                                                            email,
+                                                            whatsapp,
+                                                            gmail));
 
-        keywordToApplicationsMap.put("mail", Arrays.asList("com.google.android.contacts",
-                                                            "com.google.android.email",
-                                                            "com.google.android.gm",
-                                                            "com.google.android.apps.docs",
-                                                            "com.google.android.apps.docs.editors.docs",
-                                                            "com.google.android.apps.docs.editors.sheets",
-                                                            "com.google.android.apps.docs.editors.slides"));
+        keywordToApplicationsMap.put("ping", Arrays.asList(googleDialer,
+                                                            hangouts,
+                                                            skype,
+                                                            imo,
+                                                            contacts,
+                                                            email,
+                                                            whatsapp,
+                                                            gmail));
 
-        keywordToApplicationsMap.put("skype", Arrays.asList("com.skype.raider"));
+        keywordToApplicationsMap.put("dial", Arrays.asList(googleDialer,
+                                                            hangouts,
+                                                            skype,
+                                                            imo,
+                                                            contacts,
+                                                            whatsapp));
 
-        keywordToApplicationsMap.put("conference", Arrays.asList("com.google.android.dialer",
-                                                                    "com.google.android.talk",
-                                                                    "com.skype.raider",
-                                                                    "com.imo.android.imoim",
-                                                                    "com.google.android.contacts",
-                                                                    "com.facebook.orca"));
+        final String calendar = getString(R.string.calendar);
+        final String googleDocs = getString(R.string.googleDocs);
+        final String googleSheets = getString(R.string.googleSheets);
+        final String googleSlides = getString(R.string.googleSlides);
+        final String googleDrive = getString(R.string.googleDrive);
+        final String googleKeep = getString(R.string.googleKeep);
 
-        keywordToApplicationsMap.put("presentation", Arrays.asList( "com.google.android.apps.docs.editors.docs",
-                                                                    "com.google.android.apps.docs.editors.sheets",
-                                                                    "com.google.android.apps.docs",
-                                                                    "com.google.android.keep"));
+        keywordToApplicationsMap.put("meeting", Arrays.asList(googleDialer,
+                                                                hangouts,
+                                                                calendar,
+                                                                skype,
+                                                                imo,
+                                                                contacts,
+                                                                googleDocs,
+                                                                googleSheets,
+                                                                googleSlides,
+                                                                email,
+                                                                gmail,
+                                                                googleDrive,
+                                                                googleKeep));
 
-        keywordToApplicationsMap.put("report", Arrays.asList( "com.google.android.apps.docs.editors.docs",
-                                                                "com.google.android.apps.docs.editors.sheets",
-                                                                "com.google.android.apps.docs",
-                                                                "com.google.android.keep"));
+        keywordToApplicationsMap.put("mail", Arrays.asList(contacts,
+                                                            email,
+                                                            gmail,
+                                                            googleDrive,
+                                                            googleDocs,
+                                                            googleSheets,
+                                                            googleSlides));
 
-        keywordToApplicationsMap.put("study", Arrays.asList("com.android.chromeprivelegedprocess",
-                "com.google.android.deskclock"));
+        keywordToApplicationsMap.put("skype", Arrays.asList(skype));
 
-        keywordToApplicationsMap.put("sleep", Arrays.asList("com.android.chromeprivelegedprocess",
-                                                            "com.google.android.deskclock"));
+        keywordToApplicationsMap.put("conference", Arrays.asList(googleDialer,
+                                                                    hangouts,
+                                                                    skype,
+                                                                    imo,
+                                                                    contacts,
+                                                                    whatsapp));
+
+        keywordToApplicationsMap.put("presentation", Arrays.asList(googleDocs,
+                                                                    googleSheets,
+                                                                    googleDrive,
+                                                                    googleKeep,
+                                                                    googleSlides));
+
+        keywordToApplicationsMap.put("report", Arrays.asList(googleDocs,
+                                                                googleSheets,
+                                                                googleSlides,
+                                                                gmail,
+                                                                googleDrive,
+                                                                googleKeep));
+
+        final String chromeProcess1 = getString(R.string.chromProcess1);
+        final String chromeProcess2 = getString(R.string.chromeProcess2);
+        final String chromeProcess3 = getString(R.string.chromeProcess3);
+        final String clock = getString(R.string.clock);
+
+        keywordToApplicationsMap.put("study", Arrays.asList(chromeProcess1,
+                                                            chromeProcess2,
+                                                            chromeProcess3,
+                                                            clock));
+
+        keywordToApplicationsMap.put("sleep", Arrays.asList(chromeProcess1,
+                                                            chromeProcess2,
+                                                            chromeProcess3,
+                                                            clock));
+
+        final String goSMS = getString(R.string.goSMS);
+
+        keywordToApplicationsMap.put("message", Arrays.asList(goSMS,
+                                                                email,
+                                                                gmail,
+                                                                hangouts,
+                                                                whatsapp,
+                                                                contacts));
+
+        keywordToApplicationsMap.put("text", Arrays.asList(goSMS,
+                                                            email,
+                                                            gmail,
+                                                            hangouts,
+                                                            whatsapp,
+                                                            contacts));
+
+        final String calculator = getString(R.string.calculator);
+
+        keywordToApplicationsMap.put("class", Arrays.asList(calculator,
+                                                            chromeProcess2,
+                                                            chromeProcess1,
+                                                            chromeProcess3,
+                                                            googleDocs,
+                                                            googleSheets,
+                                                            googleSlides));
     }
 
     public void updateStatistics()
@@ -365,8 +419,8 @@ public class ContextAnalyzerService extends Service
         {
             removeLastIfQueueFull();
 
-            boolean appPresentInCache           = listOfProcessesInCacheList.contains(newForegroundApp);
-            boolean appPresentInSuggestedList   = listOfSuggestedApplicationsList.contains(newForegroundApp);
+            boolean appPresentInCache           = setOfProcessesInCacheList.contains(newForegroundApp);
+            boolean appPresentInSuggestedList   = setOfSuggestedApplications.contains(newForegroundApp);
 
             /*
                 Increment overall cache hit, cache and suggested cache hit
@@ -437,8 +491,8 @@ public class ContextAnalyzerService extends Service
 
         recentHitsAndMisses = customStringFormatForQueue(recentHitsAndMissesQueue);
 
-        listOfProcessesInCacheList = computeRunningApplications();
-        listOfProcessesInCache = customStringFormatForList(listOfProcessesInCacheList);
+        setOfProcessesInCacheList = computeRunningApplications();
+        listOfProcessesInCache = customStringFormatForSet(setOfProcessesInCacheList);
     }
 
     private void updateOverallCacheHitRatio()
@@ -595,10 +649,10 @@ public class ContextAnalyzerService extends Service
         return result.toString();
     }
 
-    private String customStringFormatForList(List<String> list)
+    private String customStringFormatForSet(Set<String> set)
     {
         StringBuilder builder = new StringBuilder("");
-        for(String item : list)
+        for(String item : set)
             builder.append(item).append("\n");
         return builder.toString();
     }
@@ -643,12 +697,11 @@ public class ContextAnalyzerService extends Service
         return recentHitsAndMisses;
     }
 
-    private List<String> computeRunningApplications()
+    private Set<String> computeRunningApplications()
     {
-        List<String> runningApplicationsNames = new ArrayList<>();
+        Set<String> runningApplicationsNames = new HashSet<>();
 
         List<ProcessManager.Process> runningApplications = ProcessManager.getRunningApplications();
-        Collections.sort(runningApplications);
 
         for(ProcessManager.Process process : runningApplications)
         {

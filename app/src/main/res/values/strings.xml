@@ -31,4 +31,24 @@
     <string name="systemAndDeviceInformation"><b>SYSTEM AND DEVICE INFORMATION:</b></string>
     <string name="numberOfInstalledApplications"><b>NUMBER OF INSTALLED APPLICATIONS:</b></string>
     <string name="cacheMetricsApp">com.thesis.android.metrics.cachemetricscollector</string>
+    <string name="googleDialer">com.google.android.dialer</string>
+    <string name="hangouts">com.google.android.talk</string>
+    <string name="skype">com.skype.raider</string>
+    <string name="imo">com.imo.android.imoim</string>
+    <string name="contacts">com.google.android.contacts</string>
+    <string name="whatsapp">com.whatsapp</string>
+    <string name="email">com.google.android.email</string>
+    <string name="gmail">com.google.android.gm</string>
+    <string name="calendar">com.android.providers.calendar</string>
+    <string name="googleDocs">com.google.android.apps.docs.editors.docs</string>
+    <string name="googleSheets">com.google.android.apps.docs.editors.sheets</string>
+    <string name="googleSlides">com.google.android.apps.docs.editors.slides</string>
+    <string name="googleDrive">com.google.android.apps.docs</string>
+    <string name="googleKeep">com.google.android.keep</string>
+    <string name="chromProcess1">com.android.chromeprivelegedprocess</string>
+    <string name="chromeProcess2">com.android.chrome</string>
+    <string name="chromeProcess3">com.android.chromesandboxedprocess</string>
+    <string name="clock">com.google.android.deskclock</string>
+    <string name="goSMS">com.jb.gosms</string>
+    <string name="calculator">com.android.calculator</string>
 </resources>
