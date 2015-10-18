@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,9 +18,6 @@ import java.util.List;
 public class CalendarReader
 {
     public static List<String> events = new ArrayList<>();
-    public static List<String> startDates = new ArrayList<>();
-    public static List<String> endDates = new ArrayList<>();
-    public static List<String> descriptions = new ArrayList<>();
 
     public static List<String> readCalendarEvent(Context context) {
         Cursor cursor = context.getContentResolver()
@@ -36,27 +34,15 @@ public class CalendarReader
 
         // fetching calendars id
         events.clear();
-        startDates.clear();
-        endDates.clear();
-        descriptions.clear();
 
-        Date currentDate = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat(
-                "dd/MM/yyyy hh:mm:ss a");
-
-        Date tomorrow = new Date();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(tomorrow);
-        calendar.add(Calendar.DATE, 1);
-        tomorrow = calendar.getTime();
-        String tomorrowDate = formatter.format(tomorrow);
+        Date yesterday = getYesterdaysDate(new Date());
+        Date tomorrow = getTomorrowsDate(new Date());
 
         for (int i = 0; i < calendarNames.length; i++) {
 
-            String date = formatter.format(currentDate);
-            String eventDate = getDate(Long.parseLong(cursor.getString(3)));
+            Date eventDate = getDate(Long.parseLong(cursor.getString(3)));
 
-            if(eventDate.compareTo(date) >= 0 && eventDate.compareTo(tomorrowDate) <= 0)
+            if(eventDate.compareTo(yesterday) >= 0 && eventDate.compareTo(tomorrow) <= 0)
                 events.add(cursor.getString(1));
             cursor.moveToNext();
         }
@@ -64,11 +50,29 @@ public class CalendarReader
         return events;
     }
 
-    public static String getDate(long milliSeconds) {
-        SimpleDateFormat formatter = new SimpleDateFormat(
-                "dd/MM/yyyy hh:mm:ss a");
+    @NonNull
+    private static Date getTomorrowsDate(Date tomorrow) {
+
+        Calendar calendar;
+        calendar = Calendar.getInstance();
+        calendar.setTime(tomorrow);
+        calendar.add(Calendar.DATE, 1);
+        tomorrow = calendar.getTime();
+        return tomorrow;
+    }
+
+    @NonNull
+    private static Date getYesterdaysDate(Date yesterday) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(yesterday);
+        calendar.add(Calendar.DATE, -1);
+        yesterday = calendar.getTime();
+        return yesterday;
+    }
+
+    private static Date getDate(long milliSeconds) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(milliSeconds);
-        return formatter.format(calendar.getTime());
+        return calendar.getTime();
     }
 }
