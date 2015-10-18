@@ -30,4 +30,5 @@
     <string name="metricsDataFileName">metricsData</string>
     <string name="systemAndDeviceInformation"><b>SYSTEM AND DEVICE INFORMATION:</b></string>
     <string name="numberOfInstalledApplications"><b>NUMBER OF INSTALLED APPLICATIONS:</b></string>
+    <string name="cacheMetricsApp">com.thesis.android.metrics.cachemetricscollector</string>
 </resources>

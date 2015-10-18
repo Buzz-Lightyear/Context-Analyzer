@@ -35,6 +35,8 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
             serviceBound = true;
 
             populateNumberOfInstalledApplications();
+            contextAnalyzerService.populateKeywordToApplicationsMap();
+            contextAnalyzerService.populateDefaultSuggestedApplications();
 
             Thread t = new Thread() {
 
@@ -67,9 +69,9 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
                             }
 
                             /*
-                                Every hour, get the latest list of suggested applications by parsing the Calendar
+                                Every two hours, get the latest list of suggested applications by parsing the Calendar
                             */
-                            if(iteration % 3600 == 0)
+                            if(iteration % 7200 == 0)
                             {
                                 Log.d("Hourly Update", "Update list of suggested applications by parsing the user's Calendar");
                                 contextAnalyzerService.updateListOfSuggestedApplications();
