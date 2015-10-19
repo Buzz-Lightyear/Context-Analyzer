@@ -4,8 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
@@ -13,12 +11,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class ContextAnalyzerActivity extends AppCompatActivity {
 
@@ -98,7 +90,8 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
                                     populateTextView(contextAnalyzerService.getCacheAndSuggestedCacheHits(), R.id.cacheAndSuggestedCacheHits);
                                     populateTextView(contextAnalyzerService.getSuggestedCacheMisses(), R.id.suggestedCacheMisses);
                                     populateTextView(contextAnalyzerService.getSuggestedCacheHitRatio(), R.id.suggestedCacheHitRatio);
-                                    populateTextView(contextAnalyzerService.getNumberOfDistinctApplicationsClicked(), R.id.numberOfDistinctApplicationsClicked);
+                                    populateTextView(contextAnalyzerService.getNumberOfUniqueApplicationsClicked(), R.id.numberOfUniqueApplicationsClicked);
+                                    populateTextView(contextAnalyzerService.getUniqueApplicationsClicked(), R.id.uniqueApplicationsClicked);
                                     populateTextView(contextAnalyzerService.getRecentHitsAndMisses(), R.id.recentHitsAndMisses);
                                     populateTextView(contextAnalyzerService.getListOfProcessesInCache(), R.id.listOfProcessesInCache);
                                     populateTextView(contextAnalyzerService.getListOfSuggestedApplications(), R.id.listOfSuggestedApplications);

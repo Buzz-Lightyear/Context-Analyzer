@@ -55,11 +55,16 @@ public class ContextAnalyzerService extends Service
 
     private String foregroundApp = "Loading...";
 
-    private Set<String> distinctApplicationsClicked = new HashSet<>();
+    private Set<String> uniqueApplicationsClicked = new HashSet<>();
 
-    public String getNumberOfDistinctApplicationsClicked()
+    public String getNumberOfUniqueApplicationsClicked()
     {
-        return String.valueOf(distinctApplicationsClicked.size());
+        return String.valueOf(uniqueApplicationsClicked.size());
+    }
+
+    public String getUniqueApplicationsClicked()
+    {
+        return customStringFormatForSet(uniqueApplicationsClicked);
     }
 
     public void getCurrentMetricsFromFile()
@@ -92,10 +97,10 @@ public class ContextAnalyzerService extends Service
                 cacheAndSuggestedCacheHits          = Integer.valueOf(bufferedReader.readLine());
                 suggestedCacheMisses                = Integer.valueOf(bufferedReader.readLine());
 
-                distinctApplicationsClicked = new HashSet<>();
+                uniqueApplicationsClicked = new HashSet<>();
                 String process;
                 while((process = bufferedReader.readLine()) != null)
-                    distinctApplicationsClicked.add(process);
+                    uniqueApplicationsClicked.add(process);
             }
             catch (FileNotFoundException e)
             {
@@ -200,7 +205,7 @@ public class ContextAnalyzerService extends Service
     }
 
     private void writeOneAppPerLine(BufferedWriter bufferedWriter) throws IOException {
-        for(String process : distinctApplicationsClicked)
+        for(String process : uniqueApplicationsClicked)
         {
             bufferedWriter.write(process);
             bufferedWriter.newLine();
@@ -455,7 +460,7 @@ public class ContextAnalyzerService extends Service
         if(foregroundAppChanged && !appsThatDontAddToCacheMetrics.contains(newForegroundApp))
         {
             removeLastIfQueueFull();
-            distinctApplicationsClicked.add(newForegroundApp);
+            uniqueApplicationsClicked.add(newForegroundApp);
 
             boolean appPresentInCache           = setOfProcessesInCacheList.contains(newForegroundApp);
             boolean appPresentInSuggestedList   = setOfSuggestedApplications.contains(newForegroundApp);
