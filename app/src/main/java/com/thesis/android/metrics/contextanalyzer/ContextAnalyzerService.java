@@ -55,6 +55,13 @@ public class ContextAnalyzerService extends Service
 
     private String foregroundApp = "Loading...";
 
+    private Set<String> distinctApplicationsClicked = new HashSet<>();
+
+    public String getNumberOfDistinctApplicationsClicked()
+    {
+        return String.valueOf(distinctApplicationsClicked.size());
+    }
+
     public void getCurrentMetricsFromFile()
     {
         /*
@@ -79,11 +86,16 @@ public class ContextAnalyzerService extends Service
                 inputStreamReader = new InputStreamReader(inputStream);
                 bufferedReader    = new BufferedReader(inputStreamReader);
 
-                overallCacheHits   = Integer.valueOf(bufferedReader.readLine());
-                overallCacheMisses = Integer.valueOf(bufferedReader.readLine());
-                suggestedExclusiveCacheHits = Integer.valueOf(bufferedReader.readLine());
-                cacheAndSuggestedCacheHits = Integer.valueOf(bufferedReader.readLine());
-                suggestedCacheMisses = Integer.valueOf(bufferedReader.readLine());
+                overallCacheHits                    = Integer.valueOf(bufferedReader.readLine());
+                overallCacheMisses                  = Integer.valueOf(bufferedReader.readLine());
+                suggestedExclusiveCacheHits         = Integer.valueOf(bufferedReader.readLine());
+                cacheAndSuggestedCacheHits          = Integer.valueOf(bufferedReader.readLine());
+                suggestedCacheMisses                = Integer.valueOf(bufferedReader.readLine());
+
+                distinctApplicationsClicked = new HashSet<>();
+                String process;
+                while((process = bufferedReader.readLine()) != null)
+                    distinctApplicationsClicked.add(process);
             }
             catch (FileNotFoundException e)
             {
@@ -126,12 +138,12 @@ public class ContextAnalyzerService extends Service
         */
 
         {
-            final String filename               = getString(R.string.metricsDataFileName);
-            final String overallHits            = String.valueOf(overallCacheHits);
-            final String overallMisses          = String.valueOf(overallCacheMisses);
-            final String suggestedExclusiveHits = String.valueOf(suggestedExclusiveCacheHits);
-            final String cacheAndSuggestedHits  = String.valueOf(cacheAndSuggestedCacheHits);
-            final String suggestedMisses        = String.valueOf(suggestedCacheMisses);
+            final String filename                           = getString(R.string.metricsDataFileName);
+            final String overallHits                        = String.valueOf(overallCacheHits);
+            final String overallMisses                      = String.valueOf(overallCacheMisses);
+            final String suggestedExclusiveHits             = String.valueOf(suggestedExclusiveCacheHits);
+            final String cacheAndSuggestedHits              = String.valueOf(cacheAndSuggestedCacheHits);
+            final String suggestedMisses                    = String.valueOf(suggestedCacheMisses);
 
             FileOutputStream outputStream;
             OutputStreamWriter outputStreamWriter;
@@ -143,7 +155,8 @@ public class ContextAnalyzerService extends Service
                 outputStreamWriter   = new OutputStreamWriter(outputStream);
                 bufferedWriter       = new BufferedWriter(outputStreamWriter);
 
-                writeDataToFile(overallHits, overallMisses, suggestedExclusiveHits, cacheAndSuggestedHits, suggestedMisses, bufferedWriter);
+                writeDataToFile(overallHits, overallMisses, suggestedExclusiveHits, cacheAndSuggestedHits,
+                        suggestedMisses, bufferedWriter);
             }
             catch (Exception e)
             {
@@ -169,7 +182,9 @@ public class ContextAnalyzerService extends Service
         bufferedWriter.close();
     }
 
-    private void writeDataToFile(String overallHits, String overallMisses, String suggestedExclusiveHits, String cacheAndSuggestedHits, String suggestedMisses, BufferedWriter bufferedWriter) throws IOException {
+    private void writeDataToFile(String overallHits, String overallMisses, String suggestedExclusiveHits,
+                                 String cacheAndSuggestedHits, String suggestedMisses,
+                                 BufferedWriter bufferedWriter) throws IOException {
         bufferedWriter.write(overallHits);
         bufferedWriter.newLine();
         bufferedWriter.write(overallMisses);
@@ -179,6 +194,17 @@ public class ContextAnalyzerService extends Service
         bufferedWriter.write(cacheAndSuggestedHits);
         bufferedWriter.newLine();
         bufferedWriter.write(suggestedMisses);
+        bufferedWriter.newLine();
+
+        writeOneAppPerLine(bufferedWriter);
+    }
+
+    private void writeOneAppPerLine(BufferedWriter bufferedWriter) throws IOException {
+        for(String process : distinctApplicationsClicked)
+        {
+            bufferedWriter.write(process);
+            bufferedWriter.newLine();
+        }
     }
 
     Map<String, List<String>> keywordToApplicationsMap = new HashMap<>();
@@ -429,6 +455,7 @@ public class ContextAnalyzerService extends Service
         if(foregroundAppChanged && !appsThatDontAddToCacheMetrics.contains(newForegroundApp))
         {
             removeLastIfQueueFull();
+            distinctApplicationsClicked.add(newForegroundApp);
 
             boolean appPresentInCache           = setOfProcessesInCacheList.contains(newForegroundApp);
             boolean appPresentInSuggestedList   = setOfSuggestedApplications.contains(newForegroundApp);

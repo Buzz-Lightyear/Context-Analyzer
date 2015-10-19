@@ -98,6 +98,7 @@ public class ContextAnalyzerActivity extends AppCompatActivity {
                                     populateTextView(contextAnalyzerService.getCacheAndSuggestedCacheHits(), R.id.cacheAndSuggestedCacheHits);
                                     populateTextView(contextAnalyzerService.getSuggestedCacheMisses(), R.id.suggestedCacheMisses);
                                     populateTextView(contextAnalyzerService.getSuggestedCacheHitRatio(), R.id.suggestedCacheHitRatio);
+                                    populateTextView(contextAnalyzerService.getNumberOfDistinctApplicationsClicked(), R.id.numberOfDistinctApplicationsClicked);
                                     populateTextView(contextAnalyzerService.getRecentHitsAndMisses(), R.id.recentHitsAndMisses);
                                     populateTextView(contextAnalyzerService.getListOfProcessesInCache(), R.id.listOfProcessesInCache);
                                     populateTextView(contextAnalyzerService.getListOfSuggestedApplications(), R.id.listOfSuggestedApplications);
