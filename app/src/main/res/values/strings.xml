@@ -51,4 +51,5 @@
     <string name="clock">com.google.android.deskclock</string>
     <string name="goSMS">com.jb.gosms</string>
     <string name="calculator">com.android.calculator</string>
+    <string name="numberOfDistinctApplicationsClicked">NUMBER OF DISTINCT APPLICATIONS CLICKED:</string>
 </resources>
